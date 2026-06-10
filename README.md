@@ -4,15 +4,10 @@
   <img src="https://raw.githubusercontent.com/hotheadhacker/no-as-a-service/main/assets/imgs/naas-with-no-logo-bunny.png" width="800" alt="No-as-a-Service Banner"/>
 </p>
 
-Ever needed a graceful way to say "no"? This is the same 1000+ creative rejection
-reasons — re-implemented as a **command-line tool written in
-[ActionC](https://github.com/lhartikk/ArnoldC)**, an esoteric language whose keywords are
-action-movie one-liners. Run `naas`, get a `no`.
-
-> **Why a CLI and not the API?** ActionC compiles to JVM bytecode and has no networking
-> primitive, so the original Express `/no` HTTP endpoint can't be reproduced in pure
-> ActionC. Reviving an HTTP interface is tracked as a separate future effort. The local
-> `naas` command is the supported interface today.
+Ever needed a graceful way to say "no"? `naas` is a **command-line tool written in
+[ActionC](https://github.com/lhartikk/ArnoldC)** — an esoteric language whose keywords are
+action-movie one-liners — that prints one of 1000+ creative rejection reasons. Run `naas`,
+get a `no`.
 
 ---
 
