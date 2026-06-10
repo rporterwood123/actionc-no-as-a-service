@@ -1,4 +1,3 @@
 # Build / run artifacts
-naas.class
 __pycache__/
 *.pyc
