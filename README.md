@@ -35,7 +35,8 @@ git hooks, or whenever you need a polite (or witty) no.
 
 **Requirements:** JDK 21 and python3. The build also needs the ActionC compiler jar
 (`ActionC.jar`); the installer auto-detects it next to this repo (`../ActionC`) or via the
-`ACTIONC_JAR` environment variable.
+`ACTIONC_JAR` environment variable. If `java` isn't on your `PATH`, point the installer at
+your JDK 21 with `JAVA_HOME=/path/to/jdk-21 ./install.sh`.
 
 ```bash
 git clone <this repo>

@@ -7,6 +7,7 @@ NAAS="$HOME/.local/bin/naas"
 
 # Run 10x: each line must be non-empty; collect for a variation check.
 out=$(mktemp)
+trap 'rm -f "$out"' EXIT   # clean up the temp file even on an early FAIL exit
 i=0
 while [ "$i" -lt 10 ]; do
     line=$("$NAAS")
