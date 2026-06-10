@@ -1,6 +1,6 @@
 #!/bin/sh
 # Maintainer build: regenerate reasons.txt and compile naas.actionc -> naas.class.
-# Run on Linux with the ActionC compiler available, whenever naas.actionc or
+# Run on Linux or macOS with the ActionC compiler available, whenever naas.actionc or
 # reasons.json changes. Commits the resulting naas.class + reasons.txt.
 set -eu
 
@@ -11,7 +11,7 @@ if [ -n "${JAVA_HOME:-}" ] && [ -x "$JAVA_HOME/bin/java" ]; then
     JAVA="$JAVA_HOME/bin/java"
 else
     JAVA=
-    for j in /usr/lib/jvm/*21*/bin/java "$HOME"/tools/jdk-21*/bin/java; do
+    for j in /usr/lib/jvm/*21*/bin/java "${HOME:-}"/tools/jdk-21*/bin/java; do
         [ -x "$j" ] && { JAVA="$j"; break; }
     done
     if [ -z "$JAVA" ]; then
