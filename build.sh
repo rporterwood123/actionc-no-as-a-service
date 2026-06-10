@@ -1,6 +1,6 @@
 #!/bin/sh
 # Maintainer build: regenerate reasons.txt and compile naas.actionc -> naas.class.
-# Run on Linux or macOS with the ActionC compiler available, whenever naas.actionc or
+# Run on Linux with the ActionC compiler available, whenever naas.actionc or
 # reasons.json changes. Commits the resulting naas.class + reasons.txt.
 set -eu
 
