@@ -7,7 +7,10 @@ REPO=$(CDPATH= cd "$(dirname "$0")" && pwd)
 BINDIR="$HOME/.local/bin"
 DATADIR="$HOME/.local/share/naas"
 
-# 1. Resolve a JDK 21 `java`.
+# 1. Resolve a JDK 21 `java`. Order: $JAVA_HOME, then this machine's known JDK
+# (Pop!_OS dev box where JDK 21 is installed but not on PATH), then PATH.
+# The hardcoded fallback is deliberate so `./install.sh` works out-of-the-box
+# here; on other machines set JAVA_HOME or have `java` on PATH.
 if [ -n "${JAVA_HOME:-}" ] && [ -x "$JAVA_HOME/bin/java" ]; then
     JAVA="$JAVA_HOME/bin/java"
 elif [ -x /home/pwood/tools/jdk-21.0.11+10/bin/java ]; then
