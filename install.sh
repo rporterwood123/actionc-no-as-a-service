@@ -1,5 +1,6 @@
 #!/bin/sh
-# Build the ActionC program and install the `naas` command to ~/.local/bin.
+# Install the `naas` command to ~/.local/bin on Linux or macOS.
+# Consumes the committed naas.class + reasons.txt (run ./build.sh to refresh them).
 # Idempotent: safe to re-run.
 set -eu
 
@@ -7,48 +8,51 @@ REPO=$(CDPATH= cd "$(dirname "$0")" && pwd)
 BINDIR="$HOME/.local/bin"
 DATADIR="$HOME/.local/share/naas"
 
-# 1. Resolve a JDK 21 `java`. Order: $JAVA_HOME, then this machine's known JDK
-# (Pop!_OS dev box where JDK 21 is installed but not on PATH), then PATH.
-# The hardcoded fallback is deliberate so `./install.sh` works out-of-the-box
-# here; on other machines set JAVA_HOME or have `java` on PATH.
+# 1. Require the committed build artifacts.
+[ -f "$REPO/naas.class" ]  || { echo "error: naas.class missing. Run ./build.sh first." >&2; exit 1; }
+[ -f "$REPO/reasons.txt" ] || { echo "error: reasons.txt missing. Run ./build.sh first." >&2; exit 1; }
+
+# 2. Resolve a JDK 21 `java`, OS-aware. Order: JAVA_HOME, platform probe, PATH.
+OS=$(uname -s)
 if [ -n "${JAVA_HOME:-}" ] && [ -x "$JAVA_HOME/bin/java" ]; then
     JAVA="$JAVA_HOME/bin/java"
-elif [ -x /home/pwood/tools/jdk-21.0.11+10/bin/java ]; then
-    JAVA="/home/pwood/tools/jdk-21.0.11+10/bin/java"
-elif command -v java >/dev/null 2>&1; then
-    JAVA=$(command -v java)
 else
-    echo "error: no Java found. Install JDK 21 or set JAVA_HOME." >&2
-    exit 1
+    JAVA=
+    case "$OS" in
+        Linux)
+            # Glob common JVM locations + this dev box's ~/tools JDK.
+            for j in /usr/lib/jvm/*21*/bin/java "${HOME:-}"/tools/jdk-21*/bin/java; do
+                [ -x "$j" ] && { JAVA="$j"; break; }
+            done
+            ;;
+        Darwin)
+            # Standard macOS mechanism.
+            if [ -x /usr/libexec/java_home ]; then
+                home=$(/usr/libexec/java_home -v 21 2>/dev/null) \
+                    || home=$(/usr/libexec/java_home 2>/dev/null) || home=
+                [ -n "$home" ] && [ -x "$home/bin/java" ] && JAVA="$home/bin/java"
+            fi
+            ;;
+    esac
+    if [ -z "$JAVA" ]; then
+        if command -v java >/dev/null 2>&1; then
+            JAVA=$(command -v java)
+        else
+            echo "error: no JDK 21 found. Install one or set JAVA_HOME." >&2
+            exit 1
+        fi
+    fi
 fi
 
-# 2. Resolve the ActionC compiler jar (build-time only).
-if [ -n "${ACTIONC_JAR:-}" ] && [ -f "$ACTIONC_JAR" ]; then
-    JAR="$ACTIONC_JAR"
-elif [ -f "$REPO/../ActionC/target/scala-2.12/ActionC.jar" ]; then
-    JAR="$REPO/../ActionC/target/scala-2.12/ActionC.jar"
-else
-    echo "error: ActionC.jar not found. Set ACTIONC_JAR, or build it:" >&2
-    echo "  (in the ActionC repo) sbt assembly" >&2
-    exit 1
-fi
+echo "os:   $OS"
+echo "java: $JAVA"
 
-echo "java:    $JAVA"
-echo "ActionC: $JAR"
-
-# 3. Generate the data file from canonical reasons.json.
-python3 "$REPO/tools/gen-reasons.py"
-
-# 4. Compile naas.actionc -> naas.class (in the repo dir).
-( cd "$REPO" && "$JAVA" -jar "$JAR" naas.actionc )
-
-# 5. Stage compiled class + data.
+# 3. Stage committed class + data.
 mkdir -p "$DATADIR"
-cp "$REPO/naas.class" "$DATADIR/naas.class"
+cp "$REPO/naas.class"  "$DATADIR/naas.class"
 cp "$REPO/reasons.txt" "$DATADIR/reasons.txt"
-rm -f "$REPO/naas.class"   # don't leave a build artifact in the repo
 
-# 6. Render the wrapper with the resolved java path + data dir.
+# 4. Render the wrapper with the resolved java path + data dir.
 mkdir -p "$BINDIR"
 sed -e "s#@JAVA@#$JAVA#g" -e "s#@DATADIR@#$DATADIR#g" \
     "$REPO/bin/naas.in" > "$BINDIR/naas"
@@ -56,9 +60,9 @@ chmod +x "$BINDIR/naas"
 
 echo "installed: $BINDIR/naas"
 
-# 7. PATH check (non-fatal).
+# 5. PATH check (non-fatal).
 case ":$PATH:" in
     *":$BINDIR:"*) ;;
-    *) echo "note: $BINDIR is not on your PATH. Add to ~/.bashrc:" >&2
+    *) echo "note: $BINDIR is not on your PATH. Add to your shell rc:" >&2
        echo "  export PATH=\"\$HOME/.local/bin:\$PATH\"" >&2 ;;
 esac
