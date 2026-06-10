@@ -70,9 +70,26 @@ and **adds that directory to your user PATH** automatically. Open a new terminal
 naas
 ```
 
-> **Note:** the macOS and Windows installers are authored and statically checked on a Linux
-> development machine but have not been run on real macOS / Windows hardware. Run `test.sh`
-> (macOS) or `test.ps1` (Windows) after installing to confirm.
+### PowerShell on Linux / macOS
+
+`install.ps1` is cross-platform: run it under [PowerShell 7+](https://learn.microsoft.com/powershell/)
+(`pwsh`) on Linux or macOS and it installs the same way `install.sh` does — same JDK 21 probe
+(`$JAVA_HOME`, then platform-standard locations, then `java` on PATH), staging into
+`~/.local/share/naas/` and a `naas` wrapper into `~/.local/bin/`:
+
+```bash
+pwsh ./install.ps1
+pwsh ./test.ps1   # or ./test.sh
+naas
+```
+
+If `~/.local/bin` isn't on your `PATH`, the installer prints the line to add (it does not
+edit your shell rc).
+
+> **Note:** the Linux installers (`install.sh` and `install.ps1` via `pwsh`) and the Windows
+> PowerShell installer are verified on real hardware. The macOS path is authored and statically
+> checked on a Linux development machine but has not been run on real macOS hardware — run
+> `test.sh` after installing to confirm.
 
 ### Rebuilding (maintainers)
 
@@ -100,9 +117,9 @@ actionc-no-as-a-service/
 ├── bin/naas.cmd.in     # Windows .cmd wrapper template
 ├── build.sh            # maintainer build: gen data + compile (Linux + ActionC)
 ├── install.sh          # install to ~/.local (Linux + macOS)
-├── install.ps1         # install to %LOCALAPPDATA% (Windows)
+├── install.ps1         # PowerShell installer (Windows, + Linux/macOS via pwsh)
 ├── test.sh             # smoke test (Linux + macOS)
-├── test.ps1            # smoke test (Windows)
+├── test.ps1            # smoke test (Windows, + Linux/macOS via pwsh)
 └── README.md
 ```
 
