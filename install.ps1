@@ -37,7 +37,10 @@ Copy-Item (Join-Path $Repo 'reasons.txt') (Join-Path $DataDir 'reasons.txt') -Fo
 New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
 $tpl = Get-Content (Join-Path (Join-Path $Repo 'bin') 'naas.cmd.in') -Raw
 $tpl = $tpl.Replace('@JAVA@', $Java).Replace('@DATADIR@', $DataDir)
-Set-Content -Path (Join-Path $BinDir 'naas.cmd') -Value $tpl -Encoding Ascii
+# Normalize to CRLF so the generated .cmd is valid on Windows regardless of the
+# template's (Linux-committed) line endings.
+$tpl = ($tpl -replace "`r`n", "`n") -replace "`n", "`r`n"
+Set-Content -Path (Join-Path $BinDir 'naas.cmd') -Value $tpl -Encoding Ascii -NoNewline
 
 Write-Host "installed: $(Join-Path $BinDir 'naas.cmd')"
 
@@ -45,7 +48,7 @@ Write-Host "installed: $(Join-Path $BinDir 'naas.cmd')"
 $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 $onPath = $userPath -and (($userPath -split ';') -contains $BinDir)
 if (-not $onPath) {
-    $newPath = if ($userPath) { "$userPath;$BinDir" } else { $BinDir }
+    $newPath = if ($userPath) { $userPath.TrimEnd(';') + ';' + $BinDir } else { $BinDir }
     [Environment]::SetEnvironmentVariable('Path', $newPath, 'User')
     Write-Host "added $BinDir to your user PATH. Open a new terminal to use 'naas'."
 } else {
