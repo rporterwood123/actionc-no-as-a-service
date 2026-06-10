@@ -1,199 +1,113 @@
-# ❌ No-as-a-Service
+# ❌ No-as-a-Service — ActionC edition
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hotheadhacker/no-as-a-service/main/assets/imgs/naas-with-no-logo-bunny.png" width="800" alt="No-as-a-Service Banner" width="70%"/>
+  <img src="https://raw.githubusercontent.com/hotheadhacker/no-as-a-service/main/assets/imgs/naas-with-no-logo-bunny.png" width="800" alt="No-as-a-Service Banner"/>
 </p>
 
+Ever needed a graceful way to say "no"? This is the same 1000+ creative rejection
+reasons — re-implemented as a **command-line tool written in
+[ActionC](https://github.com/lhartikk/ArnoldC)**, an esoteric language whose keywords are
+action-movie one-liners. Run `naas`, get a `no`.
 
-Ever needed a graceful way to say “no”?  
-This tiny API returns random, generic, creative, and sometimes hilarious rejection reasons — perfectly suited for any scenario: personal, professional, student life, dev life, or just because.
-
-Built for humans, excuses, and humor.
-
-<!-- GitAds Sponsorship Badge -->
-<p align="center">
-  <a href="https://docs.gitads.dev/">
-    <img src="https://gitads.dev/assets/images/sponsor/camos/camo-3.png" alt="Sponsored by GitAds" />
-  </a>
-</p>
-
-<p align="center">
-  This project is <strong>sponsored by <a href="https://docs.gitads.dev/docs/getting-started/publishers">GitAds</a></strong>.<br>
-  You can get your GitHub repository sponsored too — <a href="https://docs.gitads.dev/docs/getting-started/publishers">create your account now</a>.
-</p>
+> **Why a CLI and not the API?** ActionC compiles to JVM bytecode and has no networking
+> primitive, so the original Express `/no` HTTP endpoint can't be reproduced in pure
+> ActionC. Reviving an HTTP interface is tracked as a separate future effort. The local
+> `naas` command is the supported interface today.
 
 ---
 
-## 🚀 API Usage
+## 🚀 Usage
 
-**Base URL**
-```
-https://naas.isalman.dev/no
-```
-
-**Method:** `GET`  
-**Rate Limit:** `120 requests per minute per IP`
-
-### 🔄 Example Request
-```http
-GET /no
+```bash
+naas
 ```
 
-### ✅ Example Response
-```json
-{
-  "reason": "This feels like something Future Me would yell at Present Me for agreeing to."
-}
+```
+This feels like something Future Me would yell at Present Me for agreeing to.
 ```
 
-Use it in apps, bots, landing pages, Slack integrations, rejection letters, or wherever you need a polite (or witty) no.
+Prints one random rejection reason to stdout and exits. Use it in shell scripts, aliases,
+git hooks, or whenever you need a polite (or witty) no.
 
 ---
 
-## 🛠️ Self-Hosting
+## 🛠️ Install (Pop!_OS / Ubuntu)
 
-Want to run it yourself? It’s lightweight and simple.
+**Requirements:** JDK 21 and python3. The build also needs the ActionC compiler jar
+(`ActionC.jar`); the installer auto-detects it next to this repo (`../ActionC`) or via the
+`ACTIONC_JAR` environment variable.
 
-### 1. Clone this repository
 ```bash
-git clone https://github.com/hotheadhacker/no-as-a-service.git
-cd no-as-a-service
+git clone <this repo>
+cd actionc-no-as-a-service
+./install.sh
 ```
 
-### 2. Install dependencies
+This:
+1. generates `reasons.txt` from `reasons.json`,
+2. compiles `naas.actionc` to a `.class` with the ActionC compiler,
+3. stages the class + data into `~/.local/share/naas/`,
+4. installs a `naas` wrapper (with the resolved `java` path baked in) into
+   `~/.local/bin/`.
+
+If `~/.local/bin` isn't on your `PATH`, the installer tells you the line to add:
+
 ```bash
-npm install
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### 3. Start the server
+Verify the install:
+
 ```bash
-npm start
-```
-
-The API will be live at:
-```
-http://localhost:3000/no
-```
-
-You can also change the port using an environment variable:
-```bash
-PORT=5000 npm start
+./test.sh
+naas
 ```
 
 ---
 
-## 📁 Project Structure
+## 📁 Project structure
 
 ```
-no-as-service/
-├── index.js            # Express API
-├── reasons.json        # 1000+ universal rejection reasons
-├── package.json
-├── .devcontainer.json  # VS Code / Github devcontainer setup
+actionc-no-as-a-service/
+├── naas.actionc        # the program (ActionC)
+├── reasons.json        # 1000+ rejection reasons (canonical source)
+├── reasons.txt         # generated, pipe-delimited runtime data
+├── tools/gen-reasons.py# regenerates reasons.txt from reasons.json
+├── bin/naas.in         # wrapper template (java path + data dir baked at install)
+├── install.sh          # build + install to ~/.local
+├── test.sh             # post-install smoke test
 └── README.md
 ```
 
----
+## ✏️ Editing the reasons
 
-## 📦 package.json
+`reasons.json` is canonical. After editing it, regenerate and re-install:
 
-For reference, here’s the package config:
-
-```json
-{
-  "name": "no-as-service",
-  "version": "1.0.0",
-  "description": "A lightweight API that returns random rejection or no reasons.",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "author": "hotheadhacker",
-  "license": "MIT",
-  "dependencies": {
-    "express": "^4.18.2",
-    "express-rate-limit": "^7.0.0"
-  }
-}
+```bash
+python3 tools/gen-reasons.py
+./install.sh
 ```
 
----
+## 🎬 How it works
 
-## ⚓ Devcontainer
+`naas.actionc` reads `reasons.txt`, splits it on `|` into an array, picks a random index
+with `GO AHEAD MAKE MY DAY`, and prints the reason with `TALK TO THE HAND`. The compiled
+class runs on a plain JDK — the ActionC compiler is only needed at build time.
 
-If you open this repo in Github Codespaces, it will automatically use `.devcontainer.json` to set up your environment.  If you open it in VSCode, it will ask you if you want to reopen it in a container.
-
----
-## Projects Using No-as-a-Service
-
-Here are some projects and websites that creatively integrate [no-as-a-service](https://naas.isalman.dev/no) to deliver humorous or programmatic "no" responses:
-
-1. **[no-as-a-service-rust](https://github.com/ZAZPRO/no-as-a-service-rust)**  
-   Rust implementation of this project.
-
-2. **[CSG Admins](https://csg-admins.de)**  
-   A system administration and gaming service hub using no-as-a-service to provide playful negative responses across some admin panels and commands.
-
-3. **[FunnyAnswers - /no endpoint](https://www.funnyanswers.lol/no)**  
-   A humor-focused API playground that includes a mirror or wrapper for no-as-a-service, perfect for developers exploring fun HTTP-based responses.
-
-4. **[Gerador de Frases Aleatórias (pt-BR)](https://github.com/timeuz/frases-aleatorias)**
-   Uma reinterpretação em Python com frases em português, frontend e novas categorias.
-
-5. **[NoAsAnApp](https://github.com/omar-jarid/NoAsAnApp)**  
-   A simple native Android app calling no-as-a-service to provide negative responses.
-
-6. **[FunnyReasons](https://github.com/amitbiswal007/FunnyReasons)**  
-   A simple Web app using `no-as-a-service` to provide funny reasons to say No.
-
-7. **[How About No?](https://github.com/lloyd094/How-About-No-)**
-   A basic GUI using no-as-a-service as the backend. Built with docker in mind.
-   
-8. **[no-as-a-service-asp](https://github.com/sapph42/no-as-a-service)**  
-   A straight-forward implementation of NaaS in ASP.NET Core
-   
-9. **[No as a Service - Raycast Extension](https://www.raycast.com/nedini/no-as-a-service)**  
-   Get a random No from within Raycast. Just install the extension from the Raycast store, open Raycast, then type in 'Random No'. Raycast extension: [No as a Service](https://www.raycast.com/nedini/no-as-a-service).
-10. **[Nopeify]([https://github.com/omar-jarid/NoAsAnApp](https://apps.apple.com/us/app/nopeify/id6757724453))**  
-   A simple native iOS app calling no-as-a-service to provide negative responses.
-
-11. **[No-as-a-Service - Slack App](https://github.com/pro100svitlo/no-as-a-service-slack-app)**  
-   Get a random `No` from within Slack. [Install](https://slack.com/oauth/v2/authorize?client_id=2550998207090.10222067205218&scope=commands,chat:write&user_scope=) the app to your workspace and then use the `/no` command to get a random response. 
-
-12. **[No-as-a-Service - Signal Bot](https://github.com/samtate/signal-no-as-a-service-bot)**  
-    Get a random `No` from within Signal. Deploy the Docker container, link your Signal account, and use the `/no` command to get a random response.
-
-13. **[No-as-a-Service GNOME Search](https://extensions.gnome.org/extension/9186/naas-gnome-search/)**
-   GNOME search provider for the No-as-a-Service API. Type 'no' to get a random excuse. Click or press Enter to copy to clipboard.
-
-14. **[Nope App](https://github.com/foss-nope/apple-nope) for iPhone and iPad. Available on [AppStore](https://apps.apple.com/app/id6759522055) **  
-    Simple OpenSource iOS app inspired by this service to find and curate reasons to say no!
-
-15. **[No MCP](https://github.com/clafoutis42/no-mcp)**  
-    Perfect for when you want your AI to be consistently negative or just want to add some humor to your MCP setup.
-
-16. **[Your Project Here?](https://github.com/YOUR_REPO)**
-   If you're using no-as-a-service in your project, open a pull request to be featured here!
-
----
-
-> Want to use no-as-a-service in your own project? Check out the usage section in this README and start returning **"no"** like a pro.
 ---
 
 ## 👤 Author
 
-Created with creative stubbornness by [hotheadhacker](https://github.com/hotheadhacker)
-
----
+Original No-as-a-Service by [hotheadhacker](https://github.com/hotheadhacker).
+ActionC port: an exercise in saying "no" via action-movie bytecode.
 
 ## 📄 License
 
-MIT — do whatever, just don’t say yes when you should say no.
-
----
+MIT — do whatever, just don't say yes when you should say no.
 
 ## 🐧 Testimonials
 
-> "I tried to integrate No-as-a-Service into the Linux kernel to reject bad patches automatically, but it started rejecting my own commits. 10/10, absolutely ruthless."
-> 
+> "I tried to integrate No-as-a-Service into the Linux kernel to reject bad patches
+> automatically, but it started rejecting my own commits. 10/10, absolutely ruthless."
+>
 > — **Linus Torvalds** (probably)
