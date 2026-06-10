@@ -40,7 +40,7 @@ $tpl = $tpl.Replace('@JAVA@', $Java).Replace('@DATADIR@', $DataDir)
 # Normalize to CRLF so the generated .cmd is valid on Windows regardless of the
 # template's (Linux-committed) line endings.
 $tpl = ($tpl -replace "`r`n", "`n") -replace "`n", "`r`n"
-Set-Content -Path (Join-Path $BinDir 'naas.cmd') -Value $tpl -Encoding Ascii -NoNewline
+Set-Content -Path (Join-Path $BinDir 'naas.cmd') -Value $tpl -Encoding Oem -NoNewline
 
 Write-Host "installed: $(Join-Path $BinDir 'naas.cmd')"
 
